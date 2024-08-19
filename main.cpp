@@ -96,7 +96,7 @@ int main(int argc, char** argv){
 
         
         for(int x = 0; x < length+1;x++){
-            cout << mem[x] << " " << end;
+            cout << mem[x];
             if(x % 5 == 0){
                 cout << endl;
             }
