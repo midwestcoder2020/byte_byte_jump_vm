@@ -35,7 +35,7 @@ int main(int argc, char** argv){
 
     infile.read(mem,length);
 
-    while(ip > 0){
+    while(ip < 0){
 
         //example
         // 0, 1, 2
