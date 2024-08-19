@@ -94,6 +94,12 @@ int main(int argc, char** argv){
 
         }
 
+        
+        for(int x = 0; x < length+1;x++){
+            cout << mem[x] << " " << end;
+            if(x % 5 == 0){
+                cout << endl;
+            }
 
     }
 
