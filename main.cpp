@@ -2,109 +2,124 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <stdlib.h>
+#include <stdio.h>
 
-#define JLE 0x1
-#define SUB 0x2
-#define MOV 0x3
-#define JE  0x4
+#define JLE '1'
+#define SUB '2'
+#define MOV '3'
+#define JE  '4'
 
+#define MEM_START 0x00
+#define MEM_END 0x7f
+#define MEM_LEN 0x100
 #define OUT 65535
-#define HALT -1
 
 using namespace std;
 
 int main(int argc, char** argv){
-
-    std::cout << "hello byte byte loading file..." << std::endl;
     
-    //instruction pointer
-    int ip=0;
+    std::cout << "running byte byte jump VM" << std::endl;
 
-    //int for registers
-    char op,addy_a,addy_b;
 
-    //load file into memory
-    std::ifstream infile("./file.raw");
+    //create memory
+    unsigned char mem[MEM_LEN];
+    memset(mem,0x00,MEM_LEN);
 
-    infile.seekg(0,std::ios::end);
-    size_t length = infile.tellg();
+    //create pc 
+    char pc,byte_a_addy,byte_b_addy,opp = 0x00;
+    
+    //load programs instructions
+    FILE* f = fopen("program.bbj","rb");
 
-    infile.seekg(0,std::ios::beg);
+    if(!f){
+        printf("Unable to open file!");
+        return -1;
+    }
 
-    char *mem = new char[length+1];
+    //seek to end
+    fseek(f,0,SEEK_END);
 
-    infile.read(mem,length);
+    //get size
+    long size = ftell(f);
 
-    while(ip < 0){
+    //seek back to beginning
+    fseek(f,0,SEEK_SET);
 
-        //example
-        // 0, 1, 2
 
-        //get op
-        op = mem[ip];
+    //create program instruction array
+    //from read size
+    char buffer[size];
 
-        //get var a from mem
-        addy_a=mem[ip+1];
+    int res = fread(buffer,size,1,f);
 
-        //get var b from mem
-        addy_b=mem[ip+2];    
+    if(res !=1){
+        printf("unable to read file. closing!");
+        fclose(f);
+        return -1;
+    }
 
-        //inc ip
-        ip+=3;
+    while(pc < size){
+        opp = buffer[pc];
+        byte_a_addy = buffer[pc+1];
+        byte_b_addy = buffer[pc+2];
+        pc+=3;
 
-        //process op
-        switch(op){
+        printf("opp %c\n",opp);
+        printf("byte a %c\n",byte_a_addy);
+        printf("byte b %c\n",byte_b_addy);
 
-            case MOV:
-            {
-
-                if(addy_b == OUT){
-                    cout << mem[addy_a] << endl;
-                }
-                else{
-                mem[addy_b] = mem[addy_a];
-                }
-            }
-
-            break;
+        switch(opp){
 
             case JLE:{
-                if(mem[addy_a] < 0){
-                    ip = addy_b;
-                }
+            printf("jle opp\n\n");
+
+            //check if a i less thtn zero and jump then address b
+
+            if(mem[byte_a_addy] < 0){
+                pc = byte_b_addy;
             }
 
+            }
             break;
 
             case SUB:{
-                mem[addy_b] -= mem[addy_a];
-            }
+                printf("sub opp\n\n");
 
-            case JE:{
-                if(mem[addy_a] == 0){
-                    ip = mem[addy_b];
+                //sub a from b
+                mem[byte_b_addy] = mem[byte_a_addy] - mem[byte_a_addy];
+            }
+            break;
+
+            case MOV:{
+                printf("mov opp\n\n");
+
+                if(byte_b_addy == OUT){
+                    cout << byte_a_addy << endl;
+                }
+                else{
+                //move a into be
+                mem[byte_b_addy] = mem[byte_a_addy];
                 }
             }
             break;
 
-            case HALT:{
-                exit(0);
+            case JE: {
+                printf("je opp\n\n");
+
+                //check if a a == 0 then goto b
+                if(mem[byte_a_addy] == 0){
+                    pc = byte_b_addy;
+                }
             }
             break;
 
+            default:
+            printf("unable to parse %c\n\n",opp);
         }
-
-        
-        for(int x = 0; x < length+1;x++){
-            cout << mem[x];
-            if(x % 5 == 0){
-                cout << endl;
-            }
-
-        }
-
-
     }
+
+    
 
     return 0;
 }
